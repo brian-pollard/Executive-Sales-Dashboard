@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FLMLRDRW7Z"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-FLMLRDRW7Z');
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sales Executive Dashboard — Brian J. Pollard</title>
+<meta name="description" content="An AI-built interactive sales executive dashboard by Brian J. Pollard — real-time pipeline metrics, forecasting, and rep performance analytics. Built with Claude Code." />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous"></script>
+<style>
+:root {
+  --bg: #f0f2f5;
+  --card: #ffffff;
+  --header: #0f172a;
+  --accent: #3b82f6;
+  --text: #1e293b;
+  --muted: #64748b;
+  --border: #e2e8f0;
+  --pos: #16a34a;
+  --neg: #dc2626;
+  --gap: 16px;
+  --r: 10px;
+  --shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+.wrap{max-width:1440px;margin:0 auto;padding:var(--gap)}
+
+/* Header */
+.header{background:var(--card);color:var(--text);padding:18px 24px;border-radius:var(--r);margin-bottom:var(--gap);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;box-shadow:var(--shadow);border-left:4px solid var(--accent)}
+.header-left h1{font-size:18px;font-weight:700;letter-spacing:-0.3px;color:var(--text)}
+.header-left p{font-size:12px;color:var(--muted);margin-top:2px}
+.filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.filter-group{display:flex;flex-direction:column;gap:3px}
+.filter-group label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px}
+.filter-group select{padding:6px 10px;background:#f8fafc;border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;cursor:pointer;min-width:120px}
+.filter-group select option{background:#fff}
+
+/* KPI Row */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--gap);margin-bottom:var(--gap)}
+.kpi{background:var(--card);border-radius:var(--r);padding:20px 22px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;border-radius:var(--r) 0 0 var(--r)}
+.kpi.c1::before{background:#3b82f6}
+.kpi.c2::before{background:#8b5cf6}
+.kpi.c3::before{background:#f59e0b}
+.kpi.c4::before{background:#10b981}
+.kpi-label{font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-bottom:6px}
+.kpi-value{font-size:26px;font-weight:700;color:var(--text);line-height:1}
+.kpi-sub{font-size:12px;margin-top:6px}
+.kpi-sub .pos{color:var(--pos)}
+.kpi-sub .neg{color:var(--neg)}
+.kpi-sub .neu{color:var(--muted)}
+
+/* Charts */
+.row2{display:grid;grid-template-columns:2fr 1fr 1fr;gap:var(--gap);margin-bottom:var(--gap)}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--gap);margin-bottom:var(--gap)}
+.row4{display:grid;grid-template-columns:3fr 2fr;gap:var(--gap);margin-bottom:var(--gap)}
+
+.card{background:var(--card);border-radius:var(--r);padding:20px 22px;box-shadow:var(--shadow)}
+.card-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.card-title .badge{font-size:10px;font-weight:500;background:#f1f5f9;color:var(--muted);padding:2px 7px;border-radius:20px}
+.chart-wrap{position:relative}
+.chart-wrap canvas{max-height:260px}
+.chart-wrap.tall canvas{max-height:320px}
+.chart-wrap.sm canvas{max-height:200px}
+
+/* Table */
+.table-card{background:var(--card);border-radius:var(--r);padding:20px 22px;box-shadow:var(--shadow);overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{text-align:left;padding:8px 12px;border-bottom:2px solid var(--border);color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;cursor:pointer;user-select:none}
+thead th:hover{color:var(--text)}
+tbody td{padding:9px 12px;border-bottom:1px solid #f8fafc}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:#f8fafc}
+.rank{color:var(--muted);font-weight:600;font-size:12px}
+.rev-bar{display:flex;align-items:center;gap:8px}
+.rev-bar-fill{height:6px;border-radius:3px;background:#3b82f6;opacity:0.7;min-width:4px}
+.tag{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:500}
+.tag-us{background:#dbeafe;color:#1d4ed8}
+.tag-fr{background:#fce7f3;color:#9d174d}
+.tag-es{background:#fef3c7;color:#92400e}
+.tag-au{background:#d1fae5;color:#065f46}
+.tag-default{background:#f1f5f9;color:#475569}
+
+/* Footer */
+.footer{text-align:center;font-size:11px;color:var(--muted);padding:12px 0 4px}
+
+/* Responsive */
+@media(max-width:1100px){.row2{grid-template-columns:1fr 1fr}.row3{grid-template-columns:1fr 1fr}.row4{grid-template-columns:1fr}}
+@media(max-width:700px){.kpi-row{grid-template-columns:1fr 1fr}.row2,.row3,.row4{grid-template-columns:1fr}}
+@media print{body{background:#fff}.header{background:#0f172a!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.filters{display:none}}
+.back-link{font-size:11px;color:rgba(255,255,255,0.45);text-decoration:none;letter-spacing:0.06em;text-transform:uppercase;display:inline-flex;align-items:center;gap:4px;margin-bottom:6px;transition:color 0.2s;}
+.back-link:hover{color:rgba(255,255,255,0.85);}
+
+/* BJP branded top header */
+.bjp-header{background:#0f172a;padding:0 2rem;height:60px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.07);}
+.bjp-header-brand{display:flex;align-items:center;gap:0.625rem;text-decoration:none;flex-shrink:0;}
+.bjp-header-brand:hover{opacity:0.85;}
+.bjp-header-logo{width:32px;height:32px;flex-shrink:0;}
+.bjp-header-brand-text{display:flex;flex-direction:column;line-height:1.2;}
+.bjp-header-brand-name{color:#fff;font-size:13px;font-weight:700;letter-spacing:0.02em;}
+.bjp-header-brand-tagline{color:rgba(255,255,255,0.45);font-size:10.5px;font-weight:500;letter-spacing:0.04em;}
+.bjp-header-right{display:flex;align-items:center;gap:1.25rem;}
+.bjp-header-tag{color:rgba(255,255,255,.4);font-size:11.5px;}
+.bjp-header-back{color:rgba(255,255,255,0.6);font-size:12px;font-weight:500;text-decoration:none;transition:color .15s;border:1px solid rgba(255,255,255,0.2);border-radius:20px;padding:3px 12px;}
+.bjp-header-back:hover{color:#fff;border-color:rgba(255,255,255,0.5);}
+@media(max-width:600px){.bjp-header-tag{display:none;}}
+</style>
+</head>
+<body>
+
+<header class="bjp-header">
+  <a href="../index.html" class="bjp-header-brand">
+    <img src="../assets/favicon.svg" class="bjp-header-logo" alt="B" />
+    <div class="bjp-header-brand-text">
+      <span class="bjp-header-brand-name">Brian J. Pollard</span>
+      <span class="bjp-header-brand-tagline">AI-Built Project</span>
+    </div>
+  </a>
+  <div class="bjp-header-right">
+    <span class="bjp-header-tag">Sales Analytics · 2026</span>
+    <a href="../portfolio.html" class="bjp-header-back">← Portfolio</a>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-left">
+      <h1>Sales Executive Dashboard</h1>
+      <p>Classic model vehicles — 2003–2005 performance overview</p>
+    </div>
+    <div class="filters">
+      <div class="filter-group">
+        <label>Year</label>
+        <select id="sel-year" onchange="applyFilters()">
+          <option value="all">All Years</option>
+          <option value="2003">2003</option>
+          <option value="2004">2004</option>
+          <option value="2005">2005 (partial)</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <!-- KPIs -->
+  <section class="kpi-row">
+    <div class="kpi c1">
+      <div class="kpi-label">Total Revenue</div>
+      <div class="kpi-value" id="kv-rev">—</div>
+      <div class="kpi-sub" id="ks-rev"></div>
+    </div>
+    <div class="kpi c2">
+      <div class="kpi-label">Total Orders</div>
+      <div class="kpi-value" id="kv-ord">—</div>
+      <div class="kpi-sub" id="ks-ord"></div>
+    </div>
+    <div class="kpi c3">
+      <div class="kpi-label">Units Sold</div>
+      <div class="kpi-value" id="kv-units">—</div>
+      <div class="kpi-sub" id="ks-units"></div>
+    </div>
+    <div class="kpi c4">
+      <div class="kpi-label">Avg Order Value</div>
+      <div class="kpi-value" id="kv-aov">—</div>
+      <div class="kpi-sub" id="ks-aov"></div>
+    </div>
+  </section>
+
+  <!-- ROW 2: Revenue Trend + Territory Donut + Deal Size Donut -->
+  <section class="row2">
+    <div class="card">
+      <div class="card-title">Monthly Revenue Trend <span class="badge" id="trend-badge">All Years</span></div>
+      <div class="chart-wrap tall"><canvas id="chart-trend"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Revenue by Territory</div>
+      <div class="chart-wrap"><canvas id="chart-territory"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Deal Size Mix</div>
+      <div class="chart-wrap"><canvas id="chart-deal"></canvas></div>
+    </div>
+  </section>
+
+  <!-- ROW 3: Product Line Bar + Country Bar + Order Status Donut -->
+  <section class="row3">
+    <div class="card">
+      <div class="card-title">Revenue by Product Line</div>
+      <div class="chart-wrap"><canvas id="chart-product"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Top 10 Countries by Revenue</div>
+      <div class="chart-wrap"><canvas id="chart-country"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Order Status Breakdown</div>
+      <div class="chart-wrap"><canvas id="chart-status"></canvas></div>
+    </div>
+  </section>
+
+  <!-- ROW 4: Quarterly Bar + Top Customers Table -->
+  <section class="row4">
+    <div class="card">
+      <div class="card-title">Quarterly Revenue</div>
+      <div class="chart-wrap"><canvas id="chart-qtr"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Year-over-Year Summary</div>
+      <div class="chart-wrap sm"><canvas id="chart-yoy"></canvas></div>
+    </div>
+  </section>
+
+  <!-- Top Customers Table -->
+  <div class="table-card">
+    <div class="card-title" style="margin-bottom:14px">Top Customers by Revenue <span class="badge" id="cust-badge">All Years</span></div>
+    <div id="cust-table"></div>
+  </div>
+
+  <div class="footer">Data covers 2003-02 to 2005-05 · 2,823 order line items · 307 unique orders · 92.7% shipped</div>
+</div>
+
+<script>
+// ── PALETTE ──────────────────────────────────────────────────────────────
+const P = ['#3b82f6','#8b5cf6','#f59e0b','#10b981','#ef4444','#ec4899','#06b6d4','#84cc16'];
+const PA = P.map(c => c + 'cc');
+
+// ── EMBEDDED DATA ────────────────────────────────────────────────────────
+const D = {
+  kpis_all: {revenue:10032628.85, orders:307, units:99067, avg_order_value:32679.57},
+  year_kpis: {
+    "2003":{revenue:3516979.54,orders:104,units:34612,avg_order_value:33817.11},
+    "2004":{revenue:4724162.60,orders:144,units:46824,avg_order_value:32806.68},
+    "2005":{revenue:1791486.71,orders:59, units:17631,avg_order_value:30364.18}
+  },
+  months: ["2003-01","2003-02","2003-03","2003-04","2003-05","2003-06","2003-07","2003-08","2003-09","2003-10","2003-11","2003-12","2004-01","2004-02","2004-03","2004-04","2004-05","2004-06","2004-07","2004-08","2004-09","2004-10","2004-11","2004-12","2005-01","2005-02","2005-03","2005-04","2005-05"],
+  monthly_revenue: {"2003-01":129753.6,"2003-02":140836.19,"2003-03":174504.9,"2003-04":201609.55,"2003-05":192673.11,"2003-06":168082.56,"2003-07":187731.88,"2003-08":197809.3,"2003-09":263973.36,"2003-10":568290.97,"2003-11":1029837.66,"2003-12":261876.46,"2004-01":316577.42,"2004-02":311419.53,"2004-03":205733.73,"2004-04":206148.12,"2004-05":273438.39,"2004-06":286674.22,"2004-07":327144.09,"2004-08":461501.27,"2004-09":320750.91,"2004-10":552924.25,"2004-11":1089048.01,"2004-12":372802.66,"2005-01":339543.42,"2005-02":358186.18,"2005-03":374262.76,"2005-04":261633.29,"2005-05":457861.06},
+  monthly_by_territory: {"2003-01":{"APAC":0,"EMEA":110756.3,"Japan":0,"NA":18997.3},"2003-02":{"APAC":0,"EMEA":115052.43,"Japan":0,"NA":25783.76},"2003-03":{"APAC":0,"EMEA":60766.92,"Japan":55245.02,"NA":58492.96},"2003-04":{"APAC":50397.66,"EMEA":82777.01,"Japan":43657.47,"NA":24777.41},"2003-05":{"APAC":9738.18,"EMEA":149087.31,"Japan":0,"NA":33847.62},"2003-06":{"APAC":0,"EMEA":71992.11,"Japan":0,"NA":96090.45},"2003-07":{"APAC":28397.26,"EMEA":58022.28,"Japan":0,"NA":101312.34},"2003-08":{"APAC":0,"EMEA":33206.63,"Japan":0,"NA":164602.67},"2003-09":{"APAC":57832.05,"EMEA":85229.4,"Japan":44219.36,"NA":76692.55},"2003-10":{"APAC":0,"EMEA":266049.52,"Japan":77809.37,"NA":224432.08},"2003-11":{"APAC":106769.3,"EMEA":565873.68,"Japan":22841.96,"NA":334352.72},"2003-12":{"APAC":0,"EMEA":61500.94,"Japan":0,"NA":200375.52},"2004-01":{"APAC":0,"EMEA":204347.38,"Japan":50490.64,"NA":61739.4},"2004-02":{"APAC":73857.16,"EMEA":133954.66,"Japan":0,"NA":103607.71},"2004-03":{"APAC":0,"EMEA":126306.14,"Japan":0,"NA":79427.59},"2004-04":{"APAC":0,"EMEA":116811.83,"Japan":17114.43,"NA":72221.86},"2004-05":{"APAC":0,"EMEA":100267.19,"Japan":0,"NA":173171.2},"2004-06":{"APAC":45788.72,"EMEA":110585.25,"Japan":25928.75,"NA":104371.5},"2004-07":{"APAC":53631.96,"EMEA":166878.31,"Japan":0,"NA":106633.82},"2004-08":{"APAC":0,"EMEA":181664.61,"Japan":3127.88,"NA":276708.78},"2004-09":{"APAC":42902.84,"EMEA":210361.71,"Japan":0,"NA":67486.36},"2004-10":{"APAC":0,"EMEA":324702.45,"Japan":0,"NA":228221.8},"2004-11":{"APAC":91222,"EMEA":503082.36,"Japan":71817.4,"NA":422926.25},"2004-12":{"APAC":37905.15,"EMEA":210167,"Japan":0,"NA":124730.51},"2005-01":{"APAC":29852.17,"EMEA":119374.49,"Japan":38191.39,"NA":152125.37},"2005-02":{"APAC":21730.03,"EMEA":217425.83,"Japan":0,"NA":119030.32},"2005-03":{"APAC":35160.25,"EMEA":204041.18,"Japan":4175.6,"NA":130885.73},"2005-04":{"APAC":2587.58,"EMEA":116562.83,"Japan":553.95,"NA":141928.93},"2005-05":{"APAC":58349.52,"EMEA":272424.66,"Japan":0,"NA":127086.88}},
+  year_territory: {"2003":{"NA":1359757.38,"EMEA":1660314.53,"Japan":243773.18,"APAC":253134.45},"2004":{"EMEA":2389128.89,"APAC":345307.83,"NA":1821246.78,"Japan":168479.1},"2005":{"EMEA":929828.99,"NA":671057.23,"APAC":147679.55,"Japan":42920.94}},
+  territory_all: {"NA":3852061.39,"EMEA":4979272.41,"APAC":746121.83,"Japan":455173.22},
+  year_product: {"2003":{"Motorcycles":370895.58,"Classic Cars":1484785.29,"Trucks and Buses":420429.93,"Vintage Cars":650987.76,"Planes":272257.6,"Ships":244821.09,"Trains":72802.29},"2004":{"Motorcycles":560545.23,"Classic Cars":1762257.09,"Trucks and Buses":529302.89,"Vintage Cars":911423.77,"Planes":502671.8,"Ships":341437.97,"Trains":116523.85},"2005":{"Motorcycles":234947.53,"Classic Cars":672573.28,"Trucks and Buses":178057.02,"Vintage Cars":340739.31,"Planes":200074.17,"Ships":128178.07,"Trains":36917.33}},
+  product_all: {"Classic Cars":3919615.66,"Vintage Cars":1903150.84,"Motorcycles":1166388.34,"Trucks and Buses":1127789.84,"Planes":975003.57,"Ships":714437.13,"Trains":226243.47},
+  year_country: {"2003":[{"country":"USA","revenue":1305147.88},{"country":"Spain","revenue":405343.39},{"country":"France","revenue":312761.42},{"country":"Australia","revenue":253134.45},{"country":"Norway","revenue":196532.6},{"country":"UK","revenue":180421.55},{"country":"Singapore","revenue":165686.2},{"country":"Italy","revenue":140928.77},{"country":"Finland","revenue":111154.51},{"country":"Denmark","revenue":99192.72}],"2004":[{"country":"USA","revenue":1685470.69},{"country":"France","revenue":555198.7},{"country":"Spain","revenue":483545.36},{"country":"UK","revenue":257656.1},{"country":"Australia","revenue":232396.68},{"country":"Italy","revenue":192235.6},{"country":"Germany","revenue":150418.78},{"country":"Japan","revenue":149422.47},{"country":"Canada","revenue":135776.09},{"country":"Denmark","revenue":120431.56}],"2005":[{"country":"USA","revenue":637364.26},{"country":"Spain","revenue":326798.17},{"country":"France","revenue":242956.4},{"country":"Australia","revenue":145091.97},{"country":"Finland","revenue":126851.71},{"country":"Austria","revenue":68250.26},{"country":"Italy","revenue":41509.94},{"country":"UK","revenue":40802.81},{"country":"Japan","revenue":38745.34},{"country":"Canada","revenue":33692.97}]},
+  country_all: [{"country":"USA","revenue":3627982.83},{"country":"Spain","revenue":1215686.92},{"country":"France","revenue":1110916.52},{"country":"Australia","revenue":630623.1},{"country":"UK","revenue":478880.46},{"country":"Italy","revenue":374674.31},{"country":"Finland","revenue":329581.91},{"country":"Norway","revenue":307463.7},{"country":"Singapore","revenue":288488.41},{"country":"Denmark","revenue":245637.15}],
+  year_deal: {"2003":{"Small":905447.86,"Medium":2178711.74,"Large":432819.94},"2004":{"Medium":2869357.88,"Small":1337051.01,"Large":517753.71},"2005":{"Small":400578.48,"Medium":1039362.62,"Large":351545.61}},
+  deal_all: {"Small":2643077.35,"Medium":6087432.24,"Large":1302119.26},
+  year_status: {"2003":[{"status":"Shipped","count":976,"revenue":3439718.03},{"status":"Cancelled","count":16,"revenue":48710.92},{"status":"Resolved","count":8,"revenue":28550.59}],"2004":[{"status":"Shipped","count":1287,"revenue":4528047.22},{"status":"Cancelled","count":44,"revenue":145776.56},{"status":"On Hold","count":6,"revenue":26260.21},{"status":"Resolved","count":8,"revenue":24078.61}],"2005":[{"status":"Shipped","count":354,"revenue":1323735.83},{"status":"Disputed","count":14,"revenue":72212.86},{"status":"In Process","count":41,"revenue":144729.96},{"status":"On Hold","count":38,"revenue":152718.98},{"status":"Resolved","count":31,"revenue":98089.08}]},
+  status_all: [{"status":"Shipped","count":2617,"revenue":9291501.08},{"status":"Cancelled","count":60,"revenue":194487.48},{"status":"On Hold","count":44,"revenue":178979.19},{"status":"Resolved","count":47,"revenue":150718.28},{"status":"In Process","count":41,"revenue":144729.96},{"status":"Disputed","count":14,"revenue":72212.86}],
+  year_customers: {"2003":[{"customer":"Euro Shopping Channel","revenue":210227.58,"orders":8,"country":"Spain"},{"customer":"Mini Gifts Distributors Ltd.","revenue":185128.12,"orders":4,"country":"USA"},{"customer":"Dragon Souveniers, Ltd.","revenue":165686.2,"orders":3,"country":"Singapore"},{"customer":"Muscle Machine Inc","revenue":132778.24,"orders":2,"country":"USA"},{"customer":"Technics Stores Inc.","revenue":104337.3,"orders":2,"country":"USA"},{"customer":"Mini Creations Ltd.","revenue":97929.83,"orders":2,"country":"USA"},{"customer":"Rovelli Gifts","revenue":96259.03,"orders":2,"country":"Italy"},{"customer":"Corporate Gift Ideas Co.","revenue":95678.88,"orders":2,"country":"USA"},{"customer":"Herkku Gifts","revenue":95277.18,"orders":2,"country":"Norway"},{"customer":"Anna's Decorations, Ltd","revenue":88983.71,"orders":2,"country":"Australia"}],"2004":[{"customer":"Euro Shopping Channel","revenue":375268.36,"orders":9,"country":"Spain"},{"customer":"Mini Gifts Distributors Ltd.","revenue":256474.26,"orders":6,"country":"USA"},{"customer":"Australian Collectors, Co.","revenue":140859.57,"orders":3,"country":"Australia"},{"customer":"Land of Toys Inc.","revenue":138285.68,"orders":3,"country":"USA"},{"customer":"Vida Sport, Ltd","revenue":117713.56,"orders":2,"country":"Switzerland"},{"customer":"Diecast Classics Inc.","revenue":115971.34,"orders":3,"country":"USA"},{"customer":"Handji Gifts& Co","revenue":112911.15,"orders":3,"country":"Singapore"},{"customer":"AV Stores, Co.","revenue":106789.89,"orders":2,"country":"UK"},{"customer":"Marta's Replicas Co.","revenue":103080.38,"orders":2,"country":"USA"},{"customer":"Saveley & Henriot, Co.","revenue":101339.14,"orders":2,"country":"France"}],"2005":[{"customer":"Euro Shopping Channel","revenue":326798.17,"orders":9,"country":"Spain"},{"customer":"Mini Gifts Distributors Ltd.","revenue":213255.68,"orders":7,"country":"USA"},{"customer":"La Rochelle Gifts","revenue":103402.09,"orders":2,"country":"France"},{"customer":"The Sharp Gifts Warehouse","revenue":95409.93,"orders":2,"country":"USA"},{"customer":"Anna's Decorations, Ltd","revenue":65012.42,"orders":2,"country":"Australia"},{"customer":"Salzburg Collectables","revenue":59475.1,"orders":1,"country":"Austria"},{"customer":"Corporate Gift Ideas Co.","revenue":54203.62,"orders":2,"country":"USA"},{"customer":"Reims Collectables","revenue":52029.07,"orders":1,"country":"France"},{"customer":"Suominen Souveniers","revenue":51373.49,"orders":1,"country":"Finland"},{"customer":"Oulu Toy Supplies, Inc.","revenue":49055.4,"orders":1,"country":"Finland"}]},
+  customers_all: [{"customer":"Euro Shopping Channel","revenue":912294.11,"orders":26,"country":"Spain"},{"customer":"Mini Gifts Distributors Ltd.","revenue":654858.06,"orders":17,"country":"USA"},{"customer":"Australian Collectors, Co.","revenue":200995.41,"orders":5,"country":"Australia"},{"customer":"Muscle Machine Inc","revenue":197736.94,"orders":4,"country":"USA"},{"customer":"La Rochelle Gifts","revenue":180124.9,"orders":4,"country":"France"},{"customer":"Dragon Souveniers, Ltd.","revenue":172989.68,"orders":5,"country":"Singapore"},{"customer":"Land of Toys Inc.","revenue":164069.44,"orders":4,"country":"USA"},{"customer":"The Sharp Gifts Warehouse","revenue":160010.27,"orders":4,"country":"USA"},{"customer":"AV Stores, Co.","revenue":157807.81,"orders":3,"country":"UK"},{"customer":"Anna's Decorations, Ltd","revenue":153996.13,"orders":4,"country":"Australia"}],
+  quarters_all: [{"quarter":"2003-Q1","revenue":445094.69},{"quarter":"2003-Q2","revenue":562365.22},{"quarter":"2003-Q3","revenue":649514.54},{"quarter":"2003-Q4","revenue":1860005.09},{"quarter":"2004-Q1","revenue":833730.68},{"quarter":"2004-Q2","revenue":766260.73},{"quarter":"2004-Q3","revenue":1109396.27},{"quarter":"2004-Q4","revenue":2014774.92},{"quarter":"2005-Q1","revenue":1071992.36},{"quarter":"2005-Q2","revenue":719494.35}],
+  year_list: [{"year":"2003","revenue":3516979.54,"orders":104,"units":34612},{"year":"2004","revenue":4724162.60,"orders":144,"units":46824},{"year":"2005","revenue":1791486.71,"orders":59,"units":17631}]
+};
+
+// ── HELPERS ───────────────────────────────────────────────────────────────
+function fmtRev(v){
+  if(v>=1e6) return '$'+(v/1e6).toFixed(2)+'M';
+  if(v>=1e3) return '$'+(v/1e3).toFixed(1)+'K';
+  return '$'+v.toFixed(0);
+}
+function fmtNum(v){
+  if(v>=1e6) return (v/1e6).toFixed(2)+'M';
+  if(v>=1e3) return (v/1e3).toFixed(1)+'K';
+  return v.toLocaleString();
+}
+function pct(a,b){if(!b)return '';const p=((a-b)/b*100);return (p>=0?'+':'')+p.toFixed(1)+'%'}
+function clsPct(p){return parseFloat(p)>=0?'pos':'neg'}
+
+function countryTag(c){
+  const map={USA:'tag-us',France:'tag-fr',Spain:'tag-es',Australia:'tag-au'};
+  return `<span class="tag ${map[c]||'tag-default'}">${c}</span>`;
+}
+
+// ── CHART REGISTRY ────────────────────────────────────────────────────────
+const charts = {};
+
+function mkChart(id, cfg){
+  if(charts[id]) charts[id].destroy();
+  charts[id] = new Chart(document.getElementById(id).getContext('2d'), cfg);
+  return charts[id];
+}
+
+function upd(id, labels, datasets){
+  const c = charts[id];
+  c.data.labels = labels;
+  if(Array.isArray(datasets)){
+    datasets.forEach((d,i)=>{ if(c.data.datasets[i]) c.data.datasets[i].data=d; });
+  } else {
+    c.data.datasets[0].data = datasets;
+  }
+  c.update('none');
+}
+
+// ── INIT CHARTS ───────────────────────────────────────────────────────────
+
+// Trend line
+mkChart('chart-trend',{
+  type:'line',
+  data:{
+    labels: D.months.map(m=>{ const [y,mo]=m.split('-'); return new Date(y,+mo-1).toLocaleDateString('en',{month:'short',year:'2-digit'}); }),
+    datasets:[{
+      label:'Revenue',data:D.months.map(m=>D.monthly_revenue[m]),
+      borderColor:P[0],backgroundColor:P[0]+'22',borderWidth:2,fill:true,tension:0.35,pointRadius:2,pointHoverRadius:5
+    }]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmtRev(ctx.parsed.y)}}},
+    scales:{x:{grid:{display:false},ticks:{maxTicksLimit:12,font:{size:10}}},y:{beginAtZero:true,ticks:{callback:v=>fmtRev(v),font:{size:10}},grid:{color:'#f1f5f9'}}}
+  }
+});
+
+// Territory donut
+function mkTerritoryChart(data){
+  const labels=Object.keys(data), vals=Object.values(data);
+  mkChart('chart-territory',{
+    type:'doughnut',
+    data:{labels,datasets:[{data:vals,backgroundColor:PA,borderColor:'#fff',borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'bottom',labels:{usePointStyle:true,padding:12,font:{size:11}}},tooltip:{callbacks:{label:ctx=>{const t=ctx.dataset.data.reduce((a,b)=>a+b,0);return ` ${fmtRev(ctx.parsed)} (${(ctx.parsed/t*100).toFixed(1)}%)`;  }}}}}
+  });
+}
+mkTerritoryChart(D.territory_all);
+
+// Deal size donut
+function mkDealChart(data){
+  const order=['Small','Medium','Large'];
+  const labels=order.filter(k=>data[k]!==undefined);
+  const vals=labels.map(k=>data[k]);
+  mkChart('chart-deal',{
+    type:'doughnut',
+    data:{labels,datasets:[{data:vals,backgroundColor:[P[3]+'cc',P[0]+'cc',P[2]+'cc'],borderColor:'#fff',borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'bottom',labels:{usePointStyle:true,padding:12,font:{size:11}}},tooltip:{callbacks:{label:ctx=>{const t=ctx.dataset.data.reduce((a,b)=>a+b,0);return ` ${fmtRev(ctx.parsed)} (${(ctx.parsed/t*100).toFixed(1)}%)`;  }}}}}
+  });
+}
+mkDealChart(D.deal_all);
+
+// Product line bar
+function mkProductChart(data){
+  const sorted=Object.entries(data).sort((a,b)=>b[1]-a[1]);
+  mkChart('chart-product',{
+    type:'bar',
+    data:{labels:sorted.map(d=>d[0]),datasets:[{data:sorted.map(d=>d[1]),backgroundColor:P.map(c=>c+'cc'),borderRadius:4}]},
+    options:{
+      responsive:true,maintainAspectRatio:false,indexAxis:'y',
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${fmtRev(ctx.parsed.x)}`}}},
+      scales:{x:{beginAtZero:true,ticks:{callback:v=>fmtRev(v),font:{size:10}},grid:{color:'#f1f5f9'}},y:{ticks:{font:{size:11}},grid:{display:false}}}
+    }
+  });
+}
+mkProductChart(D.product_all);
+
+// Country bar
+function mkCountryChart(data){
+  mkChart('chart-country',{
+    type:'bar',
+    data:{labels:data.map(d=>d.country),datasets:[{data:data.map(d=>d.revenue),backgroundColor:P[4]+'aa',borderColor:P[4],borderWidth:1,borderRadius:3}]},
+    options:{
+      responsive:true,maintainAspectRatio:false,indexAxis:'y',
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${fmtRev(ctx.parsed.x)}`}}},
+      scales:{x:{beginAtZero:true,ticks:{callback:v=>fmtRev(v),font:{size:10}},grid:{color:'#f1f5f9'}},y:{ticks:{font:{size:11}},grid:{display:false}}}
+    }
+  });
+}
+mkCountryChart(D.country_all);
+
+// Status donut
+function mkStatusChart(data){
+  const statusColors={'Shipped':P[3]+'cc','Cancelled':P[4]+'cc','On Hold':P[2]+'cc','Resolved':P[0]+'cc','In Process':P[1]+'cc','Disputed':P[5]+'cc'};
+  mkChart('chart-status',{
+    type:'doughnut',
+    data:{labels:data.map(d=>d.status),datasets:[{data:data.map(d=>d.count),backgroundColor:data.map(d=>statusColors[d.status]||P[6]+'cc'),borderColor:'#fff',borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom',labels:{usePointStyle:true,padding:10,font:{size:10}}},tooltip:{callbacks:{label:ctx=>{const t=ctx.dataset.data.reduce((a,b)=>a+b,0);return ` ${ctx.label}: ${ctx.parsed} (${(ctx.parsed/t*100).toFixed(1)}%)`;  }}}}}
+  });
+}
+mkStatusChart(D.status_all);
+
+// Quarterly bar
+function mkQtrChart(data){
+  const colors=data.map(d=>d.quarter.startsWith('2003')?P[0]+'cc':d.quarter.startsWith('2004')?P[1]+'cc':P[2]+'cc');
+  mkChart('chart-qtr',{
+    type:'bar',
+    data:{labels:data.map(d=>d.quarter),datasets:[{data:data.map(d=>d.revenue),backgroundColor:colors,borderRadius:4}]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${fmtRev(ctx.parsed.y)}`}}},
+      scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{beginAtZero:true,ticks:{callback:v=>fmtRev(v),font:{size:10}},grid:{color:'#f1f5f9'}}}
+    }
+  });
+}
+mkQtrChart(D.quarters_all);
+
+// YoY bar chart
+mkChart('chart-yoy',{
+  type:'bar',
+  data:{
+    labels:D.year_list.map(d=>d.year),
+    datasets:[
+      {label:'Revenue',data:D.year_list.map(d=>d.revenue),backgroundColor:[P[0]+'cc',P[1]+'cc',P[2]+'cc'],borderRadius:5,yAxisID:'y'}
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${fmtRev(ctx.parsed.y)}`}}},
+    scales:{
+      y:{beginAtZero:true,ticks:{callback:v=>fmtRev(v),font:{size:10}},grid:{color:'#f1f5f9'}},
+      x:{grid:{display:false}}
+    }
+  }
+});
+
+// ── CUSTOMER TABLE ────────────────────────────────────────────────────────
+let custSort = {col:'revenue',dir:-1};
+
+function renderCustomers(data){
+  const maxRev = Math.max(...data.map(d=>d.revenue));
+  let html = `<table>
+    <thead><tr>
+      <th>#</th>
+      <th onclick="sortCust('customer')">Customer ${custSort.col==='customer'?(custSort.dir>0?'▲':'▼'):''}</th>
+      <th onclick="sortCust('country')">Country ${custSort.col==='country'?(custSort.dir>0?'▲':'▼'):''}</th>
+      <th onclick="sortCust('revenue')" style="text-align:right">Revenue ${custSort.col==='revenue'?(custSort.dir>0?'▲':'▼'):'▼'}</th>
+      <th onclick="sortCust('orders')" style="text-align:right">Orders ${custSort.col==='orders'?(custSort.dir>0?'▲':'▼'):''}</th>
+      <th onclick="sortCust('aov')" style="text-align:right">Avg/Order ${custSort.col==='aov'?(custSort.dir>0?'▲':'▼'):''}</th>
+    </tr></thead><tbody>`;
+  data.forEach((r,i)=>{
+    const barW = Math.max(4, Math.round(r.revenue/maxRev*120));
+    const aov = r.orders>0?r.revenue/r.orders:0;
+    html += `<tr>
+      <td class="rank">${i+1}</td>
+      <td><strong>${r.customer}</strong></td>
+      <td>${countryTag(r.country)}</td>
+      <td style="text-align:right">
+        <div class="rev-bar" style="justify-content:flex-end">
+          <span>${fmtRev(r.revenue)}</span>
+          <div class="rev-bar-fill" style="width:${barW}px"></div>
+        </div>
+      </td>
+      <td style="text-align:right">${r.orders}</td>
+      <td style="text-align:right">${fmtRev(aov)}</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  document.getElementById('cust-table').innerHTML = html;
+}
+
+let custData = [...D.customers_all];
+renderCustomers(custData);
+
+window.sortCust = function(col){
+  if(custSort.col===col) custSort.dir*=-1; else{custSort.col=col;custSort.dir=-1;}
+  custData.sort((a,b)=>{
+    let av = col==='aov'?(a.orders?a.revenue/a.orders:0):a[col];
+    let bv = col==='aov'?(b.orders?b.revenue/b.orders:0):b[col];
+    if(typeof av==='string') return custSort.dir*(av.localeCompare(bv));
+    return custSort.dir*(av-bv);
+  });
+  renderCustomers(custData);
+};
+
+// ── KPI RENDERER ─────────────────────────────────────────────────────────
+function renderKPIs(yr){
+  const k = yr==='all'? D.kpis_all : D.year_kpis[yr];
+  document.getElementById('kv-rev').textContent = fmtRev(k.revenue);
+  document.getElementById('kv-ord').textContent = k.orders;
+  document.getElementById('kv-units').textContent = fmtNum(k.units);
+  document.getElementById('kv-aov').textContent = fmtRev(k.avg_order_value);
+
+  if(yr==='all'){
+    document.getElementById('ks-rev').innerHTML = `<span class="neu">2003–2005 cumulative</span>`;
+    document.getElementById('ks-ord').innerHTML = `<span class="neu">307 unique orders</span>`;
+    document.getElementById('ks-units').innerHTML = `<span class="neu">99,067 total units</span>`;
+    document.getElementById('ks-aov').innerHTML = `<span class="neu">All periods blended</span>`;
+  } else {
+    const yrs = Object.keys(D.year_kpis).sort();
+    const idx = yrs.indexOf(yr);
+    const prev = idx>0?D.year_kpis[yrs[idx-1]]:null;
+    const arrow = (v,p,key)=>{if(!p)return `<span class="neu">No prior year</span>`;const ch=pct(v,p[key]);return `<span class="${clsPct(ch)}">${ch} vs ${yrs[idx-1]}</span>`;}
+    document.getElementById('ks-rev').innerHTML = arrow(k.revenue,prev,'revenue');
+    document.getElementById('ks-ord').innerHTML = arrow(k.orders,prev,'orders');
+    document.getElementById('ks-units').innerHTML = arrow(k.units,prev,'units');
+    document.getElementById('ks-aov').innerHTML = arrow(k.avg_order_value,prev,'avg_order_value');
+  }
+}
+
+// ── FILTER LOGIC ──────────────────────────────────────────────────────────
+function applyFilters(){
+  const yr = document.getElementById('sel-year').value;
+  renderKPIs(yr);
+
+  // Trend chart
+  const months = yr==='all'? D.months : D.months.filter(m=>m.startsWith(yr));
+  const labels = months.map(m=>{ const [y,mo]=m.split('-'); return new Date(y,+mo-1).toLocaleDateString('en',{month:'short',year:'2-digit'}); });
+  const revData = months.map(m=>D.monthly_revenue[m]||0);
+  const c = charts['chart-trend'];
+  c.data.labels = labels;
+  c.data.datasets[0].data = revData;
+  c.update('none');
+  document.getElementById('trend-badge').textContent = yr==='all'?'All Years':yr;
+
+  // Territory donut
+  const terrData = yr==='all'?D.territory_all:D.year_territory[yr]||{};
+  mkTerritoryChart(terrData);
+
+  // Deal size donut
+  const dealData = yr==='all'?D.deal_all:D.year_deal[yr]||{};
+  mkDealChart(dealData);
+
+  // Product bar
+  const prodData = yr==='all'?D.product_all:D.year_product[yr]||{};
+  mkProductChart(prodData);
+
+  // Country bar
+  const cntryData = yr==='all'?D.country_all:D.year_country[yr]||[];
+  mkCountryChart(cntryData);
+
+  // Status donut
+  const statData = yr==='all'?D.status_all:D.year_status[yr]||[];
+  mkStatusChart(statData);
+
+  // Quarterly - filter by year
+  const qData = yr==='all'?D.quarters_all:D.quarters_all.filter(q=>q.quarter.startsWith(yr));
+  mkQtrChart(qData);
+
+  // Customers table
+  custData = yr==='all'?[...D.customers_all]:[...(D.year_customers[yr]||[])];
+  custSort = {col:'revenue',dir:-1};
+  document.getElementById('cust-badge').textContent = yr==='all'?'All Years':yr;
+  renderCustomers(custData);
+}
+
+// Init
+renderKPIs('all');
+</script>
+</body>
+</html>
