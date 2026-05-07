@@ -2,7 +2,7 @@
 
 An interactive browser-based sales analytics dashboard covering classic vehicle orders across 2003–2005 — no installation, no account, no server required.
 
-**[Live Dashboard →](https://brian-pollard.github.io/Executive-Sales-Dashboard/sales-dashboard.html)**
+**[Live Dashboard →](https://brian-pollard.github.io/Executive-Sales-Dashboard/)**
 
 ---
 
@@ -43,6 +43,6 @@ Select a year (or view all) to explore $10M in sales across 307 orders, 19 count
 
 ## Implementation
 
-Single self-contained HTML file — no build step, no external JS dependencies beyond Chart.js (CDN), no server required. Open `docs/sales-dashboard.html` directly in any browser.
+Single self-contained HTML file — no build step, no external JS dependencies beyond Chart.js (CDN), no server required. Open `docs/index.html` directly in any browser.
 
 All data is pre-aggregated and embedded directly in the HTML. The source CSV is not required to run the dashboard.
